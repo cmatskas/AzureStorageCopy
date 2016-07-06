@@ -1,8 +1,11 @@
 ﻿using System;
-using Microsoft.WindowsAzure;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.File;
+using Microsoft.Azure;
+using Microsoft.WindowsAzure.Storage.Queue;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace AzureCopyUtil
 {
@@ -14,6 +17,7 @@ namespace AzureCopyUtil
         private static CloudStorageAccount storageAccount;
         private static CloudBlobClient blobClient;
         private static CloudFileClient fileClient;
+        private static CloudQueueClient queueClient;
 
         public static CloudBlob GetCloudBlob(string containerName, string blobName, BlobType blobType)
         {
@@ -41,19 +45,35 @@ namespace AzureCopyUtil
             return cloudBlob;
         }
 
+        public static List<string> GetAllBlobReferencesInContainer(string containerName)
+        {
+            CloudBlobClient client = GetCloudBlobClient();
+            CloudBlobContainer container = client.GetContainerReference(containerName);
+            var result = container.ListBlobs(useFlatBlobListing: true, blobListingDetails: BlobListingDetails.None) as List<CloudBlockBlob>;
+            return result.Select(b => b.Uri.ToString()).ToList();
+        }
+
+        public static CloudQueue GetCloudQueue(string queueName)
+        {
+            CloudQueueClient client = GetCloudQueueClient();
+            CloudQueue queue = client.GetQueueReference(queueName);
+            queue.CreateIfNotExists();
+            return queue;
+        }
+
         public static ICloudBlob GetCloubBlob(string blobUri)
         {
             var client = GetCloudBlobClient();
             return client.GetBlobReferenceFromServer(new Uri(blobUri));
         }
 
-        public static CloudBlobDirectory GetCloudBlobDirectory(string containerName, string directoryName)
+        public static CloudBlobContainer GetCloudBlobContainer(string containerName)
         {
             CloudBlobClient client = GetCloudBlobClient();
             CloudBlobContainer container = client.GetContainerReference(containerName);
             container.CreateIfNotExists();
 
-            return container.GetDirectoryReference(directoryName);
+            return container;
         }
 
         public static string GetBlobNameFromUri(string blobUri)
@@ -64,6 +84,11 @@ namespace AzureCopyUtil
         private static CloudBlobClient GetCloudBlobClient()
         {
             return blobClient ?? GetStorageAccount().CreateCloudBlobClient();
+        }
+
+        private static CloudQueueClient GetCloudQueueClient()
+        {
+            return queueClient ?? GetStorageAccount().CreateCloudQueueClient();
         }
 
         private static string LoadConnectionStringFromConfigration()

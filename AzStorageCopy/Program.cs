@@ -39,7 +39,7 @@ namespace AzStorageCopy
                 Console.WriteLine(e.Message);
             }
         
-            Console.WriteLine("CloudBlob {0} is copied to {1} successfully.", sourceBlob.Uri.ToString(), destinationBlob.Uri.ToString());
+            Console.WriteLine("CloudBlob {0} is copied to {1} successfully.", sourceBlobUri, destinationBlob.Uri.ToString());
         }
     }
 }
