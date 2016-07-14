@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25402.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzStorageCopy", "AzStorageCopy\AzStorageCopy.csproj", "{9776879F-F705-4D72-B0F9-6B0B448D9DB5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureCopyUtil", "AzureCopyUtil\AzureCopyUtil.csproj", "{7641A4BF-9E8F-44F2-9FEA-8077A76D2146}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QueueManager", "QueueManager\QueueManager.csproj", "{B080B161-8FBE-4B8D-A8D6-F7DF3686F1D6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{7641A4BF-9E8F-44F2-9FEA-8077A76D2146}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7641A4BF-9E8F-44F2-9FEA-8077A76D2146}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7641A4BF-9E8F-44F2-9FEA-8077A76D2146}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B080B161-8FBE-4B8D-A8D6-F7DF3686F1D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B080B161-8FBE-4B8D-A8D6-F7DF3686F1D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B080B161-8FBE-4B8D-A8D6-F7DF3686F1D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B080B161-8FBE-4B8D-A8D6-F7DF3686F1D6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

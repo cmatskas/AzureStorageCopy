@@ -1,8 +1,7 @@
-﻿using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Queue;
+﻿using Microsoft.WindowsAzure.Storage.Queue;
 using AzureCopyUtil;
-using Microsoft.WindowsAzure.Storage.Blob;
 using System.IO;
+using System;
 
 namespace QueueManager
 {
@@ -10,24 +9,28 @@ namespace QueueManager
     {
         static void Main(string[] args)
         {
-            AddAllBlobsToQueue(args[0], args[1]);
+            AddAllBlobsToQueue("video-queue", "videos");
+            //UploadBlobs("videos", @"C:\Users\chmatsk\Videos\VS2015 - IntelliTrace\IntelliTraceInVisualStudio2015DemoOnly_high.mp4");
         }
 
         private static void AddAllBlobsToQueue(string queueName, string containerName)
         {
-            var queue = AzureUtil.GetCloudQueue(queueName);
-            var blobUris = AzureUtil.GetAllBlobReferencesInContainer(containerName);
+            var azureUtil = new AzureUtil();
+            var queue = azureUtil.GetCloudQueue(queueName);
+            var blobUris = azureUtil.GetAllBlobReferencesInContainer(containerName);
             
             foreach(var blobUri in blobUris)
             {
                 queue.AddMessage(new CloudQueueMessage(blobUri));
+                Console.WriteLine($"Added {blobUri} to the queue");
             }
         }
 
         private static void UploadBlobs(string containerName, string filePath)
         {
             const string blobName = "testBlob_";
-            var container = AzureUtil.GetCloudBlobContainer(containerName);
+            var azureUtil = new AzureUtil();
+            var container = azureUtil.GetCloudBlobContainer(containerName);
             var counter = 0;
             while (counter < 1000)
             {
@@ -36,8 +39,10 @@ namespace QueueManager
                 {
                     blob.UploadFromStream(fileStream);
                 }
-            } 
 
+                Console.WriteLine($"Uploaded {counter} out of 1000 videos");
+                counter++;
+            } 
         }
     }
 }
