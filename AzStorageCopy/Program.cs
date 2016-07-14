@@ -1,11 +1,5 @@
-﻿using System;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.DataMovement;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using AzureCopyUtil;
-using Microsoft.WindowsAzure.Storage;
-using Serilog;
-using Microsoft.Azure;
 using Microsoft.WindowsAzure.Storage.Queue;
 
 namespace AzStorageCopy
@@ -14,21 +8,12 @@ namespace AzStorageCopy
     {
         static void Main(string[] args)
         {
-            InitialiseLogger();
-            Parallel.For(0, 100, i => 
+            var parallelTaskCount = args.Length == 0 ? 1000 : int.Parse(args[0]);
+
+            Parallel.For(0, parallelTaskCount, i => 
             {
                 CopyBlob();
             });
-        }
-
-        public static void InitialiseLogger()
-        {
-            var storage = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
-
-            var log = new LoggerConfiguration()
-                             .WriteTo.AzureTableStorage(storage)
-                             .MinimumLevel.Debug()
-                             .CreateLogger();
         }
 
         public static void CopyBlob()

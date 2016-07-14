@@ -20,11 +20,11 @@ namespace AzureCopyUtil
         private CloudStorageAccount storageAccount;
         private CloudBlobClient blobClient;
         private CloudQueueClient queueClient;
-        private ILogger logger;
+        private static ILogger logger;
 
         public AzureUtil()
         {
-            logger = Log.ForContext<AzureUtil>();
+            InitialiseLogger();
         }
         
 
@@ -147,6 +147,16 @@ namespace AzureCopyUtil
             }
 
             return storageAccount;
+        }
+
+        private void InitialiseLogger()
+        {
+            var storage = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
+
+            logger = new LoggerConfiguration()
+                             .WriteTo.AzureTableStorage(storage)
+                             .MinimumLevel.Debug()
+                             .CreateLogger();
         }
 
     }
