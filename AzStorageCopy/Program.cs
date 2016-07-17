@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using AzureCopyUtil;
 using Microsoft.WindowsAzure.Storage.Queue;
+using System;
 
 namespace AzStorageCopy
 {
@@ -8,12 +9,12 @@ namespace AzStorageCopy
     {
         static void Main(string[] args)
         {
-            var parallelTaskCount = args.Length == 0 ? 1000 : int.Parse(args[0]);
+            /*var parallelTaskCount = args.Length == 0 ? 1000 : int.Parse(args[0]);
 
             Parallel.For(0, parallelTaskCount, i => 
             {
                 CopyBlob();
-            });
+            });*/
         }
 
         public static void CopyBlob()

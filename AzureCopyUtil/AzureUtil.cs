@@ -62,6 +62,21 @@ namespace AzureCopyUtil
             return result.Select(b => b.Uri.ToString()).ToList();
         }
 
+        public List<string> GetAllBlobsInStorageAccount()
+        {
+            var allBlobs = new HashSet<string>();
+
+            var client = GetCloudBlobClient();
+            var containers = client.ListContainers();
+            foreach (var container in containers)
+            {
+                var blobs = container.ListBlobs(useFlatBlobListing: true, blobListingDetails: BlobListingDetails.None);
+                allBlobs.UnionWith(blobs.Select(b => b.Uri.ToString()));
+            }
+
+            return allBlobs.ToList();
+        }
+
         public CloudQueue GetCloudQueue(string queueName)
         {
             var client = GetCloudQueueClient();

@@ -9,15 +9,15 @@ namespace QueueManager
     {
         static void Main(string[] args)
         {
-            AddAllBlobsToQueue("video-queue", "videos");
+            AddAllBlobsToQueue("video-queue");
             //UploadBlobs("videos", @"C:\Users\chmatsk\Videos\VS2015 - IntelliTrace\IntelliTraceInVisualStudio2015DemoOnly_high.mp4");
         }
 
-        private static void AddAllBlobsToQueue(string queueName, string containerName)
+        private static void AddAllBlobsToQueue(string queueName)
         {
             var azureUtil = new AzureUtil();
             var queue = azureUtil.GetCloudQueue(queueName);
-            var blobUris = azureUtil.GetAllBlobReferencesInContainer(containerName);
+            var blobUris = azureUtil.GetAllBlobsInStorageAccount();
             
             foreach(var blobUri in blobUris)
             {
