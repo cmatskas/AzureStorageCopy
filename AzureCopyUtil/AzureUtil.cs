@@ -54,6 +54,11 @@ namespace AzureCopyUtil
             return cloudBlob;
         }
 
+        public string GetContainerFromBlobUri(string blobUri)
+        {
+            return blobUri.Split('/').Reverse().Skip(1).Take(1).FirstOrDefault();
+        }
+
         public List<string> GetAllBlobReferencesInContainer(string containerName)
         {
             var client = GetCloudBlobClient();

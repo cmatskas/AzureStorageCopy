@@ -20,13 +20,13 @@ namespace AzStorageCopy
         public static void CopyBlob()
         {
             var queueName = "video-queue";
-            var destinationContainer = "cm-test-container";
             var azureUtil = new AzureUtil();
 
             CloudQueueMessage nextQueueItem;
             do
             {
                 nextQueueItem = azureUtil.GetQueueItem(queueName);
+                var destinationContainer = azureUtil.GetContainerFromBlobUri(nextQueueItem.AsString);
                 azureUtil.CopyBlob(nextQueueItem.AsString, destinationContainer).GetAwaiter().GetResult();
                 azureUtil.DeleteQueueMessage(queueName, nextQueueItem);
 
