@@ -17,7 +17,7 @@ namespace QueueManager
         {
             var azureUtil = new AzureUtil();
             var queue = azureUtil.GetCloudQueue(queueName);
-            var blobUris = azureUtil.GetAllBlobsInStorageAccount();
+            var blobUris = azureUtil.GetAllBlobsInStorageAccount(StorageLocation.source);
             
             foreach(var blobUri in blobUris)
             {
@@ -30,10 +30,11 @@ namespace QueueManager
         {
             const string blobName = "testBlob_";
             var azureUtil = new AzureUtil();
-            var container = azureUtil.GetCloudBlobContainer(containerName);
+           
             var counter = 0;
-            while (counter < 1000)
+            while (counter < 10)
             {
+                var container = azureUtil.GetCloudBlobContainer(containerName + counter, StorageLocation.source);
                 var blob = container.GetBlockBlobReference(blobName + counter);
                 using (var fileStream = File.OpenRead(filePath))
                 {

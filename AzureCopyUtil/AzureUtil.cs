@@ -17,7 +17,8 @@ namespace AzureCopyUtil
     public class AzureUtil
     {
 
-        private CloudStorageAccount storageAccount;
+        private CloudStorageAccount sourceStorageAccount;
+        private CloudStorageAccount destinationStorageAccount;
         private CloudBlobClient blobClient;
         private CloudQueueClient queueClient;
         private static ILogger logger;
@@ -28,9 +29,9 @@ namespace AzureCopyUtil
         }
         
 
-        public CloudBlob GetCloudBlob(string containerName, string blobName, BlobType blobType)
+        public CloudBlob GetCloudBlob(StorageLocation storageLocation, string containerName, string blobName, BlobType blobType)
         {
-            var client = GetCloudBlobClient();
+            var client = GetCloudBlobClient(storageLocation);
             CloudBlobContainer container = client.GetContainerReference(containerName);
             container.CreateIfNotExists();
 
@@ -59,19 +60,19 @@ namespace AzureCopyUtil
             return blobUri.Split('/').Reverse().Skip(1).Take(1).FirstOrDefault();
         }
 
-        public List<string> GetAllBlobReferencesInContainer(string containerName)
+        public List<string> GetAllBlobReferencesInContainer(string containerName, StorageLocation storageLocation)
         {
-            var client = GetCloudBlobClient();
+            var client = GetCloudBlobClient(storageLocation);
             var container = client.GetContainerReference(containerName);
             var result = container.ListBlobs(useFlatBlobListing: true, blobListingDetails: BlobListingDetails.None);
             return result.Select(b => b.Uri.ToString()).ToList();
         }
 
-        public List<string> GetAllBlobsInStorageAccount()
+        public List<string> GetAllBlobsInStorageAccount(StorageLocation storageLocation)
         {
             var allBlobs = new HashSet<string>();
 
-            var client = GetCloudBlobClient();
+            var client = GetCloudBlobClient(storageLocation);
             var containers = client.ListContainers();
             foreach (var container in containers)
             {
@@ -90,15 +91,9 @@ namespace AzureCopyUtil
             return queue;
         }
 
-        public ICloudBlob GetCloubBlob(string blobUri)
+        public CloudBlobContainer GetCloudBlobContainer(string containerName, StorageLocation storageLocation)
         {
-            var client = GetCloudBlobClient();
-            return client.GetBlobReferenceFromServer(new Uri(blobUri));
-        }
-
-        public CloudBlobContainer GetCloudBlobContainer(string containerName)
-        {
-            var client = GetCloudBlobClient();
+            var client = GetCloudBlobClient(storageLocation);
             var container = client.GetContainerReference(containerName);
             container.CreateIfNotExists();
 
@@ -126,11 +121,18 @@ namespace AzureCopyUtil
         public async Task CopyBlob(string sourceBlobUri, string destinationContainer)
         {
             var destinationBlobName = GetBlobNameFromUri(sourceBlobUri);
-            var destinationBlob = GetCloudBlob(destinationContainer, destinationBlobName, BlobType.BlockBlob);
+            var destinationBlob = GetCloudBlob(StorageLocation.destination, destinationContainer, destinationBlobName, BlobType.BlockBlob);
+
+            // copy only if the destination resource doesnt' exits
+            // uncomment if this is causing issues with copying the files accross
+
+            CopyOptions copyOptions = null;
+            // copyOptions = new CopyOptions();
+            // copyOptions.DestinationAccessCondition = AccessCondition.GenerateIfNotExistsCondition();
 
             try
             {
-                await TransferManager.CopyAsync(new Uri(sourceBlobUri), destinationBlob, true);
+                await TransferManager.CopyAsync(new Uri(sourceBlobUri), destinationBlob, true, copyOptions, null);
                 logger.Information("Blob copied successfully");
             }
             catch (Exception e)
@@ -141,9 +143,9 @@ namespace AzureCopyUtil
             logger.Information("CloudBlob {@SourceBlobUri} is copied to {@destinationBlob} successfully.", sourceBlobUri, destinationBlob.Uri.ToString());
         }
 
-        private CloudBlobClient GetCloudBlobClient()
+        private CloudBlobClient GetCloudBlobClient(StorageLocation storageLocation)
         {
-            blobClient = blobClient ?? GetStorageAccount().CreateCloudBlobClient();
+            blobClient = blobClient ?? GetStorageAccount(storageLocation).CreateCloudBlobClient();
             return blobClient;
         }
 
@@ -153,25 +155,41 @@ namespace AzureCopyUtil
             return queueClient;
         }
 
-        private string LoadConnectionStringFromConfigration()
+        private string LoadConnectionStringFromConfigration(StorageLocation storageLocation = StorageLocation.source)
         {
-            return CloudConfigurationManager.GetSetting("StorageConnectionString");
+            var storageConnectionString = storageLocation == StorageLocation.source
+                    ? "SourceStorageConnectionString"
+                    : "DestinationStorageConnectionString";
+
+
+            return CloudConfigurationManager.GetSetting(storageConnectionString);
         }
 
-        private CloudStorageAccount GetStorageAccount()
+        private CloudStorageAccount GetStorageAccount(StorageLocation storageLocation = StorageLocation.source)
         {
-            if (storageAccount == null)
+            if (storageLocation == StorageLocation.source)
             {
-                var connectionString = LoadConnectionStringFromConfigration();
-                storageAccount = CloudStorageAccount.Parse(connectionString);
+                if (sourceStorageAccount == null)
+                {
+                    var sourceConnectionString = LoadConnectionStringFromConfigration();
+                    sourceStorageAccount = CloudStorageAccount.Parse(sourceConnectionString);
+                }
+
+                return sourceStorageAccount;
             }
 
-            return storageAccount;
+            if (destinationStorageAccount == null)
+            {
+                var destinationConnectionString = LoadConnectionStringFromConfigration(StorageLocation.destination);
+                destinationStorageAccount = CloudStorageAccount.Parse(destinationConnectionString);
+            }
+
+            return destinationStorageAccount;
         }
 
         private void InitialiseLogger()
         {
-            var storage = CloudStorageAccount.Parse(CloudConfigurationManager.GetSetting("StorageConnectionString"));
+            var storage = GetStorageAccount(StorageLocation.source);
 
             logger = new LoggerConfiguration()
                              .WriteTo.AzureTableStorage(storage)
